@@ -7,10 +7,11 @@ import akka.http.scaladsl.server.Directives
 import akka.pattern.{ask, pipe}
 import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.Timeout
+import io.swagger.annotations._
 
 import scala.concurrent.ExecutionContext
 
-object HttpService {
+object HttpService extends CorsSupport {
 
   // $COVERAGE-OFF$
   final val Name = "http-service"
@@ -27,7 +28,8 @@ object HttpService {
     def assets = pathPrefix("swagger") {
       getFromResourceDirectory("swagger") ~ pathSingleSlash(get(redirect("index.html", StatusCodes.PermanentRedirect))) }
 
-    assets ~ new UserService(userRepository, internalTimeout).route
+    assets ~ corsHandler(new UserService(userRepository, internalTimeout).route) ~ corsHandler(new SwaggerDocService(address, port, system).routes)
+
   }
 }
 
@@ -54,6 +56,7 @@ class HttpService(address: String, port: Int, internalTimeout: Timeout, userRepo
   }
 }
 
+@Api(value = "/users", produces = "application/json")
 class UserService(userRepository: ActorRef, internalTimeout: Timeout)(implicit executionContext: ExecutionContext) extends Directives {
   import de.heikoseeberger.akkahttpcirce.CirceSupport._
   import io.circe.generic.auto._
@@ -62,12 +65,21 @@ class UserService(userRepository: ActorRef, internalTimeout: Timeout)(implicit e
 
   val route = pathPrefix("users") { usersGetAll ~ userPost }
 
+  @ApiOperation(value = "Get list of all users", nickname = "getAllUsers", httpMethod = "GET", response = classOf[UserRepository.User], responseContainer = "Set")
   def usersGetAll = get {
     complete {
       (userRepository ? UserRepository.GetUsers).mapTo[Set[UserRepository.User]]
     }
   }
 
+  @ApiOperation(value = "Create new user", nickname = "userPost", httpMethod = "POST", produces = "text/plain")
+  @ApiImplicitParams(Array(
+    new ApiImplicitParam(name = "user", dataType = "UserRepository$User", paramType = "body", required = true)
+  ))
+  @ApiResponses(Array(
+    new ApiResponse(code = 201, message = "User created"),
+    new ApiResponse(code = 409, message = "User already exists")
+  ))
   def userPost = post {
     entity(as[UserRepository.User]) { user =>
       onSuccess(userRepository ? UserRepository.AddUser(user.name)) {
