@@ -28,7 +28,11 @@ object HttpService extends CorsSupport {
     def assets = pathPrefix("swagger") {
       getFromResourceDirectory("swagger") ~ pathSingleSlash(get(redirect("index.html", StatusCodes.PermanentRedirect))) }
 
-    assets ~ corsHandler(new UserService(userRepository, internalTimeout).route) ~ corsHandler(new SwaggerDocService(address, port, system).routes)
+    def sampleDocumentation = pathPrefix("dummy") {
+      getFromResourceDirectory("dummy") ~ pathSingleSlash(get(getFromFile("dummy.json")))
+    }
+
+    assets ~ corsHandler(sampleDocumentation) ~ corsHandler(new UserService(userRepository, internalTimeout).route) ~ corsHandler(new SwaggerDocService(address, port, system).routes)
 
   }
 }

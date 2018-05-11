@@ -1,0 +1,52 @@
+{
+  "tags": [{
+    "name": "users"
+  }],
+  "host": "0.0.0.0:8080",
+  "paths": {
+    "/users": {
+      "get": {
+        "description": "",
+        "tags": ["users"],
+        "operationId": "getAllUsers",
+        "produces": ["application/json"],
+        "parameters": [],
+        "summary": "Get list of all users",
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "schema": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "basePath": "/",
+  "info": {
+    "description": "",
+    "version": "1.0",
+    "title": "",
+    "termsOfService": ""
+  },
+  "schemes": ["http"],
+  "definitions": {
+    "Function1RequestContextFutureRouteResult": {
+      "type": "object"
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "swagger": "2.0"
+}
