@@ -32,7 +32,7 @@ object HttpService extends CorsSupport {
       getFromResourceDirectory("dummy") ~ pathSingleSlash(get(getFromFile("dummy.json")))
     }
 
-    assets ~ corsHandler(sampleDocumentation) ~ corsHandler(new UserService(userRepository, internalTimeout).route) ~ corsHandler(new SwaggerDocService(address, port, system).routes)
+    assets ~ corsHandler(sampleDocumentation) ~ corsHandler(new UserService(userRepository, internalTimeout).route) ~ corsHandler(new §SwaggerDocService(address, port, system).routes)
 
   }
 }
